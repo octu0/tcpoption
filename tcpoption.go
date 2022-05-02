@@ -127,6 +127,10 @@ func SetFastOpen(conn net.Conn, count int) error {
 	return nil
 }
 
+func SetFastOpenFd(fd int, count int) error {
+	return tcpSetFastOpenConnect(fd, count)
+}
+
 func SetFastOpenConnect(conn net.Conn, count int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
@@ -134,6 +138,10 @@ func SetFastOpenConnect(conn net.Conn, count int) error {
 		})
 	}
 	return nil
+}
+
+func SetFastOpenConnectFd(fd int, count int) error {
+	return tcpSetFastOpenConnect(fd, count)
 }
 
 func SetQuickACK(conn net.Conn, enable bool) error {
@@ -145,6 +153,10 @@ func SetQuickACK(conn net.Conn, enable bool) error {
 	return nil
 }
 
+func SetQuickACKFd(fd int, enable bool) error {
+	return tcpSetQuickACK(fd, IntBool(enable))
+}
+
 func SetDeferAccept(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
@@ -152,6 +164,10 @@ func SetDeferAccept(conn net.Conn, enable bool) error {
 		})
 	}
 	return nil
+}
+
+func SetDeferAcceptFd(fd int, enable bool) error {
+	return tcpSetDeferAccept(fd, IntBool(enable))
 }
 
 func SetReuseAddr(conn net.Conn, enable bool) error {
@@ -163,6 +179,10 @@ func SetReuseAddr(conn net.Conn, enable bool) error {
 	return nil
 }
 
+func SetReuseAddrFd(fd int, enable bool) error {
+	return tcpSetReuseAddr(fd, IntBool(enable))
+}
+
 func SetReusePort(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
@@ -170,6 +190,10 @@ func SetReusePort(conn net.Conn, enable bool) error {
 		})
 	}
 	return nil
+}
+
+func SetReusePortFd(fd int, enable bool) error {
+	return tcpSetReusePort(fd, IntBool(enable))
 }
 
 type Config struct {

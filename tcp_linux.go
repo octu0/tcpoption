@@ -40,14 +40,14 @@ func tcpSetKeepAliveProbes(fd int, count int) error {
 func tcpSetFastOpen(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
-		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN, onoff),
+		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN, count),
 	)
 }
 
 func tcpSetFastOpenConnect(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
-		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN_CONNECT, onoff),
+		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN_CONNECT, count),
 	)
 }
 

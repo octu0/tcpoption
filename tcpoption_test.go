@@ -54,4 +54,7 @@ func TestGetFd(t *testing.T) {
 	}); err != nil {
 		t.Errorf("must no error: %+v", err)
 	}
+
+	listener.Close()
+	wg.Wait()
 }
