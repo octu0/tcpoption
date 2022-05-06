@@ -8,7 +8,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func tcpSetLingerTimeout(fd int, d time.Duration) error {
+func setsockoptLingerTimeout(fd int, d time.Duration) error {
 	tval := syscall.NsecToTimeval(d.Nanoseconds())
 	return os.NewSyscallError(
 		"setsockopt",
@@ -16,63 +16,63 @@ func tcpSetLingerTimeout(fd int, d time.Duration) error {
 	)
 }
 
-func tcpSetKeepAliveIdle(fd int, sec int) error {
+func setsockoptKeepAliveIdle(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPIDLE, sec),
 	)
 }
 
-func tcpSetKeepAliveInterval(fd int, sec int) error {
+func setsockoptKeepAliveInterval(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL, sec),
 	)
 }
 
-func tcpSetKeepAliveProbes(fd int, count int) error {
+func setsockoptKeepAliveProbes(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT, count),
 	)
 }
 
-func tcpSetFastOpen(fd int, count int) error {
+func setsockoptFastOpen(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN, count),
 	)
 }
 
-func tcpSetFastOpenConnect(fd int, count int) error {
+func setsockoptFastOpenConnect(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN_CONNECT, count),
 	)
 }
 
-func tcpSetQuickACK(fd int, onoff int) error {
+func setsockoptQuickACK(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_QUICKACK, onoff),
 	)
 }
 
-func tcpSetDeferAccept(fd int, onoff int) error {
+func setsockoptDeferAccept(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_DEFER_ACCEPT, onoff),
 	)
 }
 
-func tcpSetReuseAddr(fd int, onoff int) error {
+func setsockoptReuseAddr(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, unix.SO_REUSEADDR, onoff),
 	)
 }
 
-func tcpSetReusePort(fd int, onoff int) error {
+func setsockoptReusePort(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, unix.SO_REUSEPORT, onoff),

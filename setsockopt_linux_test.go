@@ -22,7 +22,7 @@ func TestSetFastOpen(t *testing.T) {
 	defer syscall.Close(fd)
 	sock := &syscall.SockaddrInet4{Port: tcpAddr.Port}
 
-	if err := tcpSetFastOpen(fd, 4*1024); err != nil {
+	if err := setsockoptFastOpen(fd, 4*1024); err != nil {
 		t.Errorf("must no error: %+v", err)
 	}
 

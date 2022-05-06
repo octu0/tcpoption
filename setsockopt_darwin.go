@@ -20,58 +20,58 @@ const (
 	DARWIN_SO_REUSEPORT = 0x0200
 )
 
-func tcpSetLingerTimeout(fd int, d time.Duration) error {
+func setsockoptLingerTimeout(fd int, d time.Duration) error {
 	return nil // no option by darwin
 }
 
-func tcpSetKeepAliveIdle(fd int, sec int) error {
+func setsockoptKeepAliveIdle(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPIDLE, sec),
 	)
 }
 
-func tcpSetKeepAliveInterval(fd int, sec int) error {
+func setsockoptKeepAliveInterval(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPINTVL, sec),
 	)
 }
 
-func tcpSetKeepAliveProbes(fd int, count int) error {
+func setsockoptKeepAliveProbes(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPCNT, count),
 	)
 }
 
-func tcpSetFastOpen(fd int, onoff int) error {
+func setsockoptFastOpen(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, onoff),
 	)
 }
 
-func tcpSetFastOpenConnect(fd int, onoff int) error {
+func setsockoptFastOpenConnect(fd int, onoff int) error {
 	return nil // no option by darwin
 }
 
-func tcpSetQuickACK(fd int, onoff int) error {
+func setsockoptQuickACK(fd int, onoff int) error {
 	return nil // no option by darwin
 }
 
-func tcpSetDeferAccept(fd int, onoff int) error {
+func setsockoptDeferAccept(fd int, onoff int) error {
 	return nil // no option by darwin
 }
 
-func tcpSetReuseAddr(fd int, onoff int) error {
+func setsockoptReuseAddr(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, DARWIN_SO_REUSEADDR, onoff),
 	)
 }
 
-func tcpSetReusePort(fd int, onoff int) error {
+func setsockoptReusePort(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, DARWIN_SO_REUSEPORT, onoff),
