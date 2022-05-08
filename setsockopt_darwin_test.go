@@ -22,6 +22,10 @@ func setupServer(t testingWrap, fn func(fd int) error) (string, context.CancelFu
 	if err != nil {
 		t.Fatalf("resolv err: %+v", err)
 	}
+	return setupServerWithTCPAddr(tcpAddr, t, fn)
+}
+
+func setupServerWithTCPAddr(tcpAddr *net.TCPAddr, t testingWrap, fn func(fd int) error) (string, context.CancelFunc, *sync.WaitGroup) {
 	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
 	if err != nil {
 		t.Fatalf("resolv err: %+v", err)
@@ -153,4 +157,83 @@ func TestSetKeepAlive(t *testing.T) {
 
 	done()
 	svr.Wait()
+}
+
+func TestReuseAddr(t *testing.T) {
+	addr, done, svr := setupServer(t, func(fd int) error {
+		if err := setsockoptReuseAddr(fd, 1); err != nil {
+			t.Errorf("reuseaddr set err:%+v", err)
+		}
+		if v, err := getsockoptReuseAddr(fd); err != nil {
+			t.Errorf("reuseaddr get err:%+v", err)
+		} else {
+			if v != DARWIN_SO_REUSEADDR { // darwin enable value is 0x0004
+				t.Errorf("enable reuseaddr: %v", v)
+			}
+		}
+		return nil
+	})
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatalf("client1 open err: %+v", err)
+	}
+	defer conn.Close()
+
+	conn.Write([]byte("PING"))
+
+	done()
+	svr.Wait()
+}
+
+func TestReusePort(t *testing.T) {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "[0.0.0.0]:12345")
+	if err != nil {
+		t.Fatalf("resolv err: %+v", err)
+	}
+	addr1, done1, svr1 := setupServerWithTCPAddr(tcpAddr, t, func(fd int) error {
+		if err := setsockoptReusePort(fd, 1); err != nil {
+			t.Errorf("reuseport set err:%+v", err)
+		}
+		if v, err := getsockoptReusePort(fd); err != nil {
+			t.Errorf("reuseport get err:%+v", err)
+		} else {
+			if v != DARWIN_SO_REUSEPORT { // darwin enable value is 0x200
+				t.Errorf("enable reuseport: %v", v)
+			}
+		}
+		return nil
+	})
+	addr2, done2, svr2 := setupServerWithTCPAddr(tcpAddr, t, func(fd int) error {
+		if err := setsockoptReusePort(fd, 1); err != nil {
+			t.Errorf("reuseport set err:%+v", err)
+		}
+		if v, err := getsockoptReusePort(fd); err != nil {
+			t.Errorf("reuseport get err:%+v", err)
+		} else {
+			if v != DARWIN_SO_REUSEPORT { // darwin enable value is 0x200
+				t.Errorf("enable reuseport: %v", v)
+			}
+		}
+		return nil
+	})
+
+	conn1, err1 := net.Dial("tcp", addr1)
+	if err1 != nil {
+		t.Fatalf("client1 open err: %+v", err1)
+	}
+	defer conn1.Close()
+
+	conn2, err2 := net.Dial("tcp", addr2)
+	if err2 != nil {
+		t.Fatalf("client2 open err: %+v", err2)
+	}
+	defer conn2.Close()
+
+	conn1.Write([]byte("PING"))
+	conn2.Write([]byte("PING"))
+
+	done1()
+	done2()
+	svr1.Wait()
+	svr2.Wait()
 }

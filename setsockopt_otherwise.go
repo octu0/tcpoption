@@ -63,6 +63,14 @@ func setsockoptReuseAddr(fd int, onoff int) error {
 	return nil // not support
 }
 
+func getsockoptReuseAddr(fd int) (int, error) {
+	return 0, nil // not support
+}
+
 func setsockoptReusePort(fd int, onoff int) error {
 	return nil // not support
+}
+
+func getsockoptReusePort(fd int) (int, error) {
+	return 0, nil // not support
 }

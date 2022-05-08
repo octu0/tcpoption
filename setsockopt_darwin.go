@@ -104,9 +104,17 @@ func setsockoptReuseAddr(fd int, onoff int) error {
 	)
 }
 
+func getsockoptReuseAddr(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.SOL_SOCKET, DARWIN_SO_REUSEADDR)
+}
+
 func setsockoptReusePort(fd int, onoff int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, DARWIN_SO_REUSEPORT, onoff),
 	)
+}
+
+func getsockoptReusePort(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.SOL_SOCKET, DARWIN_SO_REUSEPORT)
 }
