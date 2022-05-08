@@ -1,16 +1,15 @@
 package tcpoption
 
 import (
+	"context"
 	"fmt"
-	"golang.org/x/sys/unix"
 	"net"
 	"os"
-	"sync"
 	"syscall"
 	"testing"
 )
 
-func TestSetFastOpen(t *testing.T) {
+func setupServer(t *testing.T, fn func(fd int) error) (string, context.CancelFunc) {
 	tcpAddr, err := net.ResolveTCPAddr("tcp", "[0.0.0.0]:0")
 	if err != nil {
 		t.Fatalf("resolv err: %+v", err)
@@ -20,21 +19,12 @@ func TestSetFastOpen(t *testing.T) {
 		t.Fatalf("resolv err: %+v", err)
 	}
 	defer syscall.Close(fd)
+
+	if err := fn(fd); err != nil {
+		t.Fatalf("setsockopt err: %+v", err)
+	}
+
 	sock := &syscall.SockaddrInet4{Port: tcpAddr.Port}
-
-	if err := setsockoptFastOpen(fd, 4*1024); err != nil {
-		t.Errorf("must no error: %+v", err)
-	}
-
-	v, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN)
-	if err != nil {
-		t.Errorf("must no error: %+v", err)
-	}
-
-	if v != (4 * 1024) {
-		t.Errorf("setsockopt val:%d", v)
-	}
-
 	if err := syscall.Bind(fd, sock); err != nil {
 		t.Fatalf("bind err: %+v", err)
 	}
@@ -50,31 +40,85 @@ func TestSetFastOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("listen err: %+v", err)
 	}
-	defer listener.Close()
 
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
-	go func(_wg *sync.WaitGroup) {
-		defer _wg.Done()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer listener.Close()
 
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
 			conn, err := listener.Accept()
 			if err != nil {
 				return
 			}
-			conn.Write([]byte("test"))
+			conn.Write([]byte(t.Name()))
 		}
-	}(wg)
+	}()
+	addr := fmt.Sprintf("127.0.0.1:%d", listener.Addr().(*net.TCPAddr).Port)
+	return addr, cancel
+}
 
-	conn, err := net.Dial("tcp", fmt.Sprintf(
-		"127.0.0.1:%d",
-		listener.Addr().(*net.TCPAddr).Port,
-	))
+func TestSetFastOpen(t *testing.T) {
+	addr, done := setupServer(t, func(fd int) error {
+		if err := setsockoptFastOpen(fd, 4*1024); err != nil {
+			return err
+		}
+
+		value, err := getsockoptFastOpen(fd)
+		if err != nil {
+			return err
+		}
+		if value != (4 * 1024) {
+			t.Errorf("fast open value:%d", value)
+		}
+
+		if onoff, err := getsockoptDeferAccept(fd); err != nil {
+			return err
+		} else {
+			if onoff != 0 {
+				t.Errorf("no value is set, so it should default value")
+			}
+		}
+
+		return nil
+	})
+
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		t.Fatalf("client open err: %+v", err)
 	}
 	defer conn.Close()
 
-	listener.Close()
-	wg.Wait()
+	done()
+}
+
+func TestSetDeferAccept(t *testing.T) {
+	addr, done := setupServer(t, func(fd int) error {
+		if err := setsockoptDeferAccept(fd, 1); err != nil {
+			return err
+		}
+
+		onoff, err := getsockoptDeferAccept(fd)
+		if err != nil {
+			return err
+		}
+		if onoff != 1 {
+			t.Errorf("enable defer_accept flag: %d", onoff)
+		}
+
+		return nil
+	})
+
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatalf("client open err: %+v", err)
+	}
+	defer conn.Close()
+
+	done()
 }

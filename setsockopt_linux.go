@@ -44,6 +44,10 @@ func setsockoptFastOpen(fd int, count int) error {
 	)
 }
 
+func getsockoptFastOpen(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_FASTOPEN)
+}
+
 func setsockoptFastOpenConnect(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
@@ -63,6 +67,10 @@ func setsockoptDeferAccept(fd int, onoff int) error {
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_DEFER_ACCEPT, onoff),
 	)
+}
+
+func getsockoptDeferAccept(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, unix.TCP_DEFER_ACCEPT)
 }
 
 func setsockoptReuseAddr(fd int, onoff int) error {

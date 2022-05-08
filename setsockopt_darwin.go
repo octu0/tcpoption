@@ -8,16 +8,22 @@ import (
 
 // netinet/tcp.h
 const (
-	DARWIN_TCP_KEEPIDLE  = 0x10
-	DARWIN_TCP_KEEPINTVL = 0x101
-	DARWIN_TCP_KEEPCNT   = 0x102
-	DARWIN_TCP_FASTOPEN  = 0x105
+	DARWIN_TCP_KEEPIDLE  int = 0x10
+	DARWIN_TCP_KEEPINTVL int = 0x101
+	DARWIN_TCP_KEEPCNT   int = 0x102
+	DARWIN_TCP_FASTOPEN  int = 0x105
+)
+
+// netinet/tcp_var.h
+const (
+	DARWIN_TCP_FASTOPEN_SERVER int = 0x01
+	DARWIN_TCP_FASTOPEN_CLIENT int = 0x02
 )
 
 // sys/socket.h
 const (
-	DARWIN_SO_REUSEADDR = 0x0004
-	DARWIN_SO_REUSEPORT = 0x0200
+	DARWIN_SO_REUSEADDR int = 0x0004
+	DARWIN_SO_REUSEPORT int = 0x0200
 )
 
 func setsockoptLingerTimeout(fd int, d time.Duration) error {
@@ -45,15 +51,26 @@ func setsockoptKeepAliveProbes(fd int, count int) error {
 	)
 }
 
-func setsockoptFastOpen(fd int, onoff int) error {
+func setsockoptFastOpen(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
-		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, onoff),
+		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_SERVER),
 	)
 }
 
-func setsockoptFastOpenConnect(fd int, onoff int) error {
-	return nil // no option by darwin
+func getsockoptFastOpen(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
+}
+
+func setsockoptFastOpenConnect(fd int, count int) error {
+	return os.NewSyscallError(
+		"setsockopt",
+		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_CLIENT),
+	)
+}
+
+func getsockoptFastOpenConnect(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
 }
 
 func setsockoptQuickACK(fd int, onoff int) error {
