@@ -8,7 +8,7 @@ import (
 func SetNoLinger(conn net.Conn, enable bool) error {
 	if enable {
 		if c, ok := conn.(*net.TCPConn); ok {
-			return tcpSetLinger(c, 0)
+			return setsockoptLinger(c, 0)
 		}
 	}
 	return nil
@@ -19,7 +19,7 @@ func SetLinger(conn net.Conn, d time.Duration) error {
 		return SetNoLinger(conn, true)
 	}
 	if c, ok := conn.(*net.TCPConn); ok {
-		return tcpSetLinger(c, IntSecond(d))
+		return setsockoptLinger(c, IntSecond(d))
 	}
 	return nil
 }
@@ -27,7 +27,7 @@ func SetLinger(conn net.Conn, d time.Duration) error {
 func SetLingerTimeout(conn net.Conn, d time.Duration) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetLingerTimeout(fd, d)
+			return setsockoptLingerTimeout(fd, d)
 		})
 	}
 	return nil
@@ -35,41 +35,41 @@ func SetLingerTimeout(conn net.Conn, d time.Duration) error {
 
 func SetReadBuffer(conn net.Conn, bytes int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		return tcpSetReadBuffer(c, bytes)
+		return setsockoptReadBuffer(c, bytes)
 	}
 	return nil
 }
 
 func SetWriteBuffer(conn net.Conn, bytes int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		return tcpSetWriteBuffer(c, bytes)
+		return setsockoptWriteBuffer(c, bytes)
 	}
 	return nil
 }
 
 func SetNoDelay(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		return tcpSetNoDelay(c, enable)
+		return setsockoptNoDelay(c, enable)
 	}
 	return nil
 }
 
 func KeepAlive(conn net.Conn, enable bool, idle, interval time.Duration, probes int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		if err := tcpSetKeepAlive(c, enable); err != nil {
+		if err := setsockoptKeepAlive(c, enable); err != nil {
 			return err
 		}
 		if enable != true {
 			return nil
 		}
 		return getFd(c, func(fd int) error {
-			if err := tcpSetKeepAliveIdle(fd, IntSecond(idle)); err != nil {
+			if err := setsockoptKeepAliveIdle(fd, IntSecond(idle)); err != nil {
 				return err
 			}
-			if err := tcpSetKeepAliveInterval(fd, IntSecond(interval)); err != nil {
+			if err := setsockoptKeepAliveInterval(fd, IntSecond(interval)); err != nil {
 				return err
 			}
-			return tcpSetKeepAliveProbes(fd, probes)
+			return setsockoptKeepAliveProbes(fd, probes)
 		})
 	}
 	return nil
@@ -77,18 +77,18 @@ func KeepAlive(conn net.Conn, enable bool, idle, interval time.Duration, probes 
 
 func SetKeepAlive(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		return tcpSetKeepAlive(c, enable)
+		return setsockoptKeepAlive(c, enable)
 	}
 	return nil
 }
 
 func SetKeepAliveTime(conn net.Conn, d time.Duration) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		if err := tcpSetKeepAlive(c, true); err != nil {
+		if err := setsockoptKeepAlive(c, true); err != nil {
 			return err
 		}
 		return getFd(c, func(fd int) error {
-			return tcpSetKeepAliveIdle(fd, IntSecond(d))
+			return setsockoptKeepAliveIdle(fd, IntSecond(d))
 		})
 	}
 	return nil
@@ -96,11 +96,11 @@ func SetKeepAliveTime(conn net.Conn, d time.Duration) error {
 
 func SetKeepAliveInterval(conn net.Conn, d time.Duration) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		if err := tcpSetKeepAlive(c, true); err != nil {
+		if err := setsockoptKeepAlive(c, true); err != nil {
 			return err
 		}
 		return getFd(c, func(fd int) error {
-			return tcpSetKeepAliveInterval(fd, IntSecond(d))
+			return setsockoptKeepAliveInterval(fd, IntSecond(d))
 		})
 	}
 	return nil
@@ -108,11 +108,11 @@ func SetKeepAliveInterval(conn net.Conn, d time.Duration) error {
 
 func SetKeepAliveProbes(conn net.Conn, count int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
-		if err := tcpSetKeepAlive(c, true); err != nil {
+		if err := setsockoptKeepAlive(c, true); err != nil {
 			return err
 		}
 		return getFd(c, func(fd int) error {
-			return tcpSetKeepAliveProbes(fd, count)
+			return setsockoptKeepAliveProbes(fd, count)
 		})
 	}
 	return nil
@@ -121,79 +121,79 @@ func SetKeepAliveProbes(conn net.Conn, count int) error {
 func SetFastOpen(conn net.Conn, count int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetFastOpen(fd, count)
+			return setsockoptFastOpen(fd, count)
 		})
 	}
 	return nil
 }
 
 func SetFastOpenFd(fd int, count int) error {
-	return tcpSetFastOpenConnect(fd, count)
+	return setsockoptFastOpenConnect(fd, count)
 }
 
 func SetFastOpenConnect(conn net.Conn, count int) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetFastOpenConnect(fd, count)
+			return setsockoptFastOpenConnect(fd, count)
 		})
 	}
 	return nil
 }
 
 func SetFastOpenConnectFd(fd int, count int) error {
-	return tcpSetFastOpenConnect(fd, count)
+	return setsockoptFastOpenConnect(fd, count)
 }
 
 func SetQuickACK(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetQuickACK(fd, IntBool(enable))
+			return setsockoptQuickACK(fd, IntBool(enable))
 		})
 	}
 	return nil
 }
 
 func SetQuickACKFd(fd int, enable bool) error {
-	return tcpSetQuickACK(fd, IntBool(enable))
+	return setsockoptQuickACK(fd, IntBool(enable))
 }
 
 func SetDeferAccept(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetDeferAccept(fd, IntBool(enable))
+			return setsockoptDeferAccept(fd, IntBool(enable))
 		})
 	}
 	return nil
 }
 
 func SetDeferAcceptFd(fd int, enable bool) error {
-	return tcpSetDeferAccept(fd, IntBool(enable))
+	return setsockoptDeferAccept(fd, IntBool(enable))
 }
 
 func SetReuseAddr(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetReuseAddr(fd, IntBool(enable))
+			return setsockoptReuseAddr(fd, IntBool(enable))
 		})
 	}
 	return nil
 }
 
 func SetReuseAddrFd(fd int, enable bool) error {
-	return tcpSetReuseAddr(fd, IntBool(enable))
+	return setsockoptReuseAddr(fd, IntBool(enable))
 }
 
 func SetReusePort(conn net.Conn, enable bool) error {
 	if c, ok := conn.(*net.TCPConn); ok {
 		return getFd(c, func(fd int) error {
-			return tcpSetReusePort(fd, IntBool(enable))
+			return setsockoptReusePort(fd, IntBool(enable))
 		})
 	}
 	return nil
 }
 
 func SetReusePortFd(fd int, enable bool) error {
-	return tcpSetReusePort(fd, IntBool(enable))
+	return setsockoptReusePort(fd, IntBool(enable))
 }
 
 type Config struct {
@@ -221,68 +221,68 @@ func Set(conn net.Conn, cfg Config) error {
 	}
 	return getFd(c, func(fd int) error {
 		if cfg.NoLinger {
-			if err := tcpSetLinger(c, 0); err != nil {
+			if err := setsockoptLinger(c, 0); err != nil {
 				return err
 			}
 		}
 		if 0 < cfg.LingerTimeout {
-			if err := tcpSetLingerTimeout(fd, cfg.LingerTimeout); err != nil {
+			if err := setsockoptLingerTimeout(fd, cfg.LingerTimeout); err != nil {
 				return err
 			}
 		}
 		if 0 < cfg.ReadBuffer {
-			if err := tcpSetReadBuffer(c, cfg.ReadBuffer); err != nil {
+			if err := setsockoptReadBuffer(c, cfg.ReadBuffer); err != nil {
 				return err
 			}
 		}
 		if 0 < cfg.WriteBuffer {
-			if err := tcpSetWriteBuffer(c, cfg.WriteBuffer); err != nil {
+			if err := setsockoptWriteBuffer(c, cfg.WriteBuffer); err != nil {
 				return err
 			}
 		}
-		if err := tcpSetNoDelay(c, cfg.EnableNoDelay); err != nil {
+		if err := setsockoptNoDelay(c, cfg.EnableNoDelay); err != nil {
 			return err
 		}
-		if err := tcpSetKeepAlive(c, cfg.EnableKeepAlive); err != nil {
+		if err := setsockoptKeepAlive(c, cfg.EnableKeepAlive); err != nil {
 			return err
 		}
 		if cfg.EnableKeepAlive {
 			if 0 < cfg.KeepAliveTime {
-				if err := tcpSetKeepAliveIdle(fd, IntSecond(cfg.KeepAliveTime)); err != nil {
+				if err := setsockoptKeepAliveIdle(fd, IntSecond(cfg.KeepAliveTime)); err != nil {
 					return err
 				}
 			}
 			if 0 < cfg.KeepAliveInterval {
-				if err := tcpSetKeepAliveInterval(fd, IntSecond(cfg.KeepAliveInterval)); err != nil {
+				if err := setsockoptKeepAliveInterval(fd, IntSecond(cfg.KeepAliveInterval)); err != nil {
 					return err
 				}
 			}
 			if 0 < cfg.KeepAliveProbes {
-				if err := tcpSetKeepAliveProbes(fd, cfg.KeepAliveProbes); err != nil {
+				if err := setsockoptKeepAliveProbes(fd, cfg.KeepAliveProbes); err != nil {
 					return err
 				}
 			}
 		}
 		if 0 < cfg.FastOpen {
-			if err := tcpSetFastOpen(fd, cfg.FastOpen); err != nil {
+			if err := setsockoptFastOpen(fd, cfg.FastOpen); err != nil {
 				return err
 			}
 		}
 		if 0 < cfg.FastOpenConnect {
-			if err := tcpSetFastOpenConnect(fd, cfg.FastOpenConnect); err != nil {
+			if err := setsockoptFastOpenConnect(fd, cfg.FastOpenConnect); err != nil {
 				return err
 			}
 		}
-		if err := tcpSetQuickACK(fd, IntBool(cfg.EnableQuickACK)); err != nil {
+		if err := setsockoptQuickACK(fd, IntBool(cfg.EnableQuickACK)); err != nil {
 			return err
 		}
-		if err := tcpSetDeferAccept(fd, IntBool(cfg.EnableDeferAccept)); err != nil {
+		if err := setsockoptDeferAccept(fd, IntBool(cfg.EnableDeferAccept)); err != nil {
 			return err
 		}
-		if err := tcpSetReuseAddr(fd, IntBool(cfg.EnableReuseAddr)); err != nil {
+		if err := setsockoptReuseAddr(fd, IntBool(cfg.EnableReuseAddr)); err != nil {
 			return err
 		}
-		if err := tcpSetReusePort(fd, IntBool(cfg.EnableReusePort)); err != nil {
+		if err := setsockoptReusePort(fd, IntBool(cfg.EnableReusePort)); err != nil {
 			return err
 		}
 		return nil
