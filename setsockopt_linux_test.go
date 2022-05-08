@@ -244,3 +244,56 @@ func TestSetDeferAccept(t *testing.T) {
 	done()
 	svr.Wait()
 }
+
+func TestSetKeepAlive(t *testing.T) {
+	addr, done, svr := setupServer(t, func(fd int) error {
+		return nil
+	})
+
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatalf("client open err: %+v", err)
+	}
+	defer conn.Close()
+
+	if err := getFd(conn.(*net.TCPConn), func(fd int) error {
+		if err := setsockoptKeepAliveIdle(fd, 123); err != nil {
+			t.Errorf("keepalive set idle err:%+v", err)
+		}
+		if err := setsockoptKeepAliveInterval(fd, 77); err != nil {
+			t.Errorf("keepalive set interval err:%+v", err)
+		}
+		if err := setsockoptKeepAliveProbes(fd, 7); err != nil {
+			t.Errorf("keepalive set probes err:%+v", err)
+		}
+
+		if v, err := getsockoptKeepAliveIdle(fd); err != nil {
+			t.Errorf("keepalive get idle err:%+v", err)
+		} else {
+			if v != 123 {
+				t.Errorf("keepalive idle 123s, actual:%d", v)
+			}
+		}
+		if v, err := getsockoptKeepAliveInterval(fd); err != nil {
+			t.Errorf("keepalive get interval err:%+v", err)
+		} else {
+			if v != 77 {
+				t.Errorf("keepalive interval 77s, actual:%d", v)
+			}
+		}
+		if v, err := getsockoptKeepAliveProbes(fd); err != nil {
+			t.Errorf("keepalive get probes err:%+v", err)
+		} else {
+			if v != 7 {
+				t.Errorf("keepalive probes 7, actual:%d", v)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		t.Errorf("must no error: %+v", err)
+	}
+
+	done()
+	svr.Wait()
+}

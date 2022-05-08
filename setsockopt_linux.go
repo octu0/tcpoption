@@ -23,6 +23,10 @@ func setsockoptKeepAliveIdle(fd int, sec int) error {
 	)
 }
 
+func getsockoptKeepAliveIdle(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPIDLE)
+}
+
 func setsockoptKeepAliveInterval(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
@@ -30,11 +34,19 @@ func setsockoptKeepAliveInterval(fd int, sec int) error {
 	)
 }
 
+func getsockoptKeepAliveInterval(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL)
+}
+
 func setsockoptKeepAliveProbes(fd int, count int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT, count),
 	)
+}
+
+func getsockoptKeepAliveProbes(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT)
 }
 
 func setsockoptFastOpen(fd int, count int) error {

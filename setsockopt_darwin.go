@@ -37,11 +37,19 @@ func setsockoptKeepAliveIdle(fd int, sec int) error {
 	)
 }
 
+func getsockoptKeepAliveIdle(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPIDLE)
+}
+
 func setsockoptKeepAliveInterval(fd int, sec int) error {
 	return os.NewSyscallError(
 		"setsockopt",
 		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPINTVL, sec),
 	)
+}
+
+func getsockoptKeepAliveInterval(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPINTVL)
 }
 
 func setsockoptKeepAliveProbes(fd int, count int) error {
@@ -51,35 +59,42 @@ func setsockoptKeepAliveProbes(fd int, count int) error {
 	)
 }
 
+func getsockoptKeepAliveProbes(fd int) (int, error) {
+	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_KEEPCNT)
+}
+
 func setsockoptFastOpen(fd int, count int) error {
 	//return os.NewSyscallError(
 	//	"setsockopt",
 	//	syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_SERVER),
 	//)
-	return nil // no option by darwin
+	return nil // not support
 }
 
 func getsockoptFastOpen(fd int) (int, error) {
-	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
+	//return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
+	return 0, nil // not support
 }
 
 func setsockoptFastOpenConnect(fd int, count int) error {
-	return os.NewSyscallError(
-		"setsockopt",
-		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_CLIENT),
-	)
+	//return os.NewSyscallError(
+	//	"setsockopt",
+	//	syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_CLIENT),
+	//)
+	return nil // not support
 }
 
 func getsockoptFastOpenConnect(fd int) (int, error) {
-	return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
+	//return syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN)
+	return 0, nil // not support
 }
 
 func setsockoptQuickACK(fd int, onoff int) error {
-	return nil // no option by darwin
+	return nil // not support
 }
 
 func setsockoptDeferAccept(fd int, onoff int) error {
-	return nil // no option by darwin
+	return nil // not support
 }
 
 func setsockoptReuseAddr(fd int, onoff int) error {
