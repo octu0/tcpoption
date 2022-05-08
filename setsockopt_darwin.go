@@ -52,10 +52,11 @@ func setsockoptKeepAliveProbes(fd int, count int) error {
 }
 
 func setsockoptFastOpen(fd int, count int) error {
-	return os.NewSyscallError(
-		"setsockopt",
-		syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_SERVER),
-	)
+	//return os.NewSyscallError(
+	//	"setsockopt",
+	//	syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, DARWIN_TCP_FASTOPEN, DARWIN_TCP_FASTOPEN_SERVER),
+	//)
+	return nil // no option by darwin
 }
 
 func getsockoptFastOpen(fd int) (int, error) {
